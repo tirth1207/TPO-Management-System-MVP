@@ -1,4 +1,11 @@
-import "server-only";
+/**
+ * IMPORTANT:
+ * This module is imported by BOTH server and client code (e.g. lib/supabase/client.ts).
+ * Do NOT add `import "server-only"` here, otherwise Next will error when bundling client components
+ * (and also when the project has any `pages/` routes).
+ *
+ * Only read NEXT_PUBLIC_* variables in this file.
+ */
 
 export type SupabasePublicEnv = {
   url: string | null;
@@ -10,7 +17,7 @@ function stripTrailingSlash(url: string): string {
 }
 
 export function getSupabasePublicEnv(): SupabasePublicEnv {
-  const urlRaw = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? null;
+  const urlRaw = process.env.NEXT_PUBLIC_SUPABASE_URL ?? null;
 
   const anonKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
@@ -18,7 +25,6 @@ export function getSupabasePublicEnv(): SupabasePublicEnv {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
     // Some templates/tutorials use this
     process.env.NEXT_PUBLIC_SUPABASE_KEY ??
-    process.env.SUPABASE_ANON_KEY ??
     null;
 
   const url = urlRaw ? stripTrailingSlash(urlRaw) : null;
