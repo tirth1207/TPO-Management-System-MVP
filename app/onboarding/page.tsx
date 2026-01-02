@@ -8,6 +8,23 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type ApiErrorShape = {
+  error?: {
+    message?: string;
+    details?: unknown;
+  };
+};
+
+function isApiErrorShape(value: unknown): value is ApiErrorShape {
+  return typeof value === "object" && value !== null && "error" in value;
+}
+
+function extractApiErrorMessage(value: unknown): string | null {
+  if (!isApiErrorShape(value)) return null;
+  const msg = value.error?.message;
+  return typeof msg === "string" && msg.length > 0 ? msg : null;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const params = useSearchParams();
@@ -46,32 +63,62 @@ export default function OnboardingPage() {
     };
   }, [router]);
 
+  const fullNameTrimmed = fullName.trim();
+  const orgNameTrimmed = orgName.trim();
+
+  const canSubmit =
+    !busy &&
+    emailVerified &&
+    step !== "verify-email" &&
+    role !== null &&
+    ((role === "student" && fullNameTrimmed.length > 0) ||
+      (role === "company" && orgNameTrimmed.length > 0) ||
+      role === "faculty");
+
   async function markProfileComplete() {
-    setBusy(true);
     setError(null);
+
+    if (!role) {
+      setError("Role is not set for your account. Contact Admin.");
+      return;
+    }
+    if (!emailVerified) {
+      setError("Please verify your email first.");
+      return;
+    }
+    if (role === "student" && fullNameTrimmed.length === 0) {
+      setError("Full name is required.");
+      return;
+    }
+    if (role === "company" && orgNameTrimmed.length === 0) {
+      setError("Company legal name is required.");
+      return;
+    }
+
+    setBusy(true);
     try {
-      const res = await fetch(`/api/onboarding/${role ?? ""}`, {
+      const res = await fetch(`/api/onboarding/${role}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(
           role === "student"
             ? {
-                fullName,
+                fullName: fullNameTrimmed,
                 department: "TBD",
                 graduationYear: new Date().getFullYear(),
                 phone: "TBD",
               }
             : role === "company"
               ? {
-                  companyName: orgName,
-                  contactName: fullName || "TBD",
+                  companyName: orgNameTrimmed,
+                  contactName: fullNameTrimmed || "TBD",
                   contactEmail: "tbd@example.com",
                   contactPhone: "TBD",
                   website: null,
                 }
               : role === "faculty"
                 ? {
-                    fullName,
+                    fullName: fullNameTrimmed || "TBD",
                     department: "TBD",
                     phone: "TBD",
                   }
@@ -79,15 +126,20 @@ export default function OnboardingPage() {
         ),
       });
 
-      const data: unknown = await res.json();
+      // Parse response robustly (API might return non-JSON on unexpected crashes)
+      const text = await res.text();
+      let parsed: unknown = null;
+      try {
+        parsed = text ? (JSON.parse(text) as unknown) : null;
+      } catch {
+        parsed = null;
+      }
+
       if (!res.ok) {
-        const msg =
-          typeof data === "object" &&
-          data !== null &&
-          "error" in data &&
-          typeof (data as any).error?.message === "string"
-            ? (data as any).error.message
-            : "Failed to submit profile";
+        const msg = extractApiErrorMessage(parsed) ?? `Request failed (${res.status})`;
+        // Helpful for debugging during dev (will show details in console)
+        // eslint-disable-next-line no-console
+        console.error("Onboarding API error:", { status: res.status, body: parsed ?? text });
         throw new Error(msg);
       }
 
@@ -121,9 +173,9 @@ export default function OnboardingPage() {
                 variant="outline"
                 onClick={async () => {
                   // refresh auth session + UI state
-                  const supabase = createClient()
-                  await supabase.auth.refreshSession()
-                  router.refresh()
+                  const supabase = createClient();
+                  await supabase.auth.refreshSession();
+                  router.refresh();
                 }}
               >
                 Refresh status
@@ -137,7 +189,7 @@ export default function OnboardingPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
-              <Button disabled={busy} onClick={markProfileComplete}>
+              <Button disabled={!canSubmit} onClick={markProfileComplete}>
                 {busy ? "Saving..." : "Submit profile for Faculty approval"}
               </Button>
             </div>
@@ -149,7 +201,12 @@ export default function OnboardingPage() {
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
               />
-              <Button disabled={busy} onClick={markProfileComplete}>
+              <Input
+                placeholder="Contact name (optional)"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+              <Button disabled={!canSubmit} onClick={markProfileComplete}>
                 {busy ? "Saving..." : "Submit profile for Admin/Manager approval"}
               </Button>
             </div>
