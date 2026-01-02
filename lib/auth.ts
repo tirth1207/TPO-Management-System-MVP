@@ -1,14 +1,10 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export type Role = "student" | "faculty" | "company" | "manager" | "admin";
-export type ApprovalStatus =
-  | "draft"
-  | "email_verified"
-  | "pending_approval"
-  | "approved"
-  | "rejected";
+export type ApprovalStatus = "draft" | "email_verified" | "pending_approval" | "approved" | "rejected";
 
 export type UserContext = {
   userId: string;
@@ -30,10 +26,9 @@ function isRole(value: unknown): value is Role {
 }
 
 export async function requireUser(): Promise<UserContext> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabasePublicEnv();
   if (!supabaseUrl || !supabaseAnonKey) {
-    redirect("/setup");
+    redirect("/setup?error=missing_env");
   }
 
   try {
@@ -46,11 +41,7 @@ export async function requireUser(): Promise<UserContext> {
 
     const emailVerified = Boolean(user.email_confirmed_at);
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+    const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).single();
 
     if (!profile) {
       // If profile trigger hasn't populated for some reason, force setup flow.
