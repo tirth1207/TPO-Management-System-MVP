@@ -385,6 +385,13 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "placement_comparison_records_faculty_user_id_fkey"
+            columns: ["faculty_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "placement_comparison_records_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
