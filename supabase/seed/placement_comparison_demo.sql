@@ -17,7 +17,7 @@ from (
   values
   -- College
   (2024, 'college', null, null, null, null, 412, 356, 274, 38, 301, 4.72, 4.30, 12.50, 2.40, 'Synthetic demo snapshot for 2024-25.'),
-  (2025, 'college', null, null, null, null, 438, 389, 319, 46, 352, 5.18, 4.70, 15.20, 2.60, 'Synthetic demo snapshot for 2024-26.'),
+  (2025, 'college', null, null, null, null, 438, 389, 319, 46, 352, 5.18, 4.70, 15.20, 2.60, 'Synthetic demo snapshot for 2025-26.'),
 
   -- Departments
   (2024, 'department', 'Computer Engineering', null, null, null, 126, 111, 91, 24, 101, 5.08, 4.50, 12.50, 2.80, 'Synthetic demo department snapshot.'),
