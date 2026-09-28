@@ -27,6 +27,11 @@ export type ComparisonRecord = {
 
 type Role = "admin" | "manager" | "faculty" | "company";
 
+type CompanyOption = {
+  user_id: string;
+  company_name: string;
+};
+
 function placementRate(record: ComparisonRecord) {
   return record.eligible_students
     ? (record.placed_students / record.eligible_students) * 100
@@ -40,9 +45,11 @@ function formatCtc(value: number | null) {
 export function ComparisonDashboard({
   role,
   initialRecords,
+  companies,
 }: {
   role: Role;
   initialRecords: ComparisonRecord[];
+  companies: CompanyOption[];
 }) {
   const [records, setRecords] = useState(initialRecords);
   const [scope, setScope] = useState<"college" | "department" | "company">(
@@ -83,6 +90,7 @@ export function ComparisonDashboard({
       scopeType: String(form.get("scopeType")),
       department: form.get("department") ? String(form.get("department")) : undefined,
       companyName: form.get("companyName") ? String(form.get("companyName")) : undefined,
+      companyUserId: form.get("companyUserId") ? String(form.get("companyUserId")) : undefined,
       totalStudents: Number(form.get("totalStudents")),
       eligibleStudents: Number(form.get("eligibleStudents")),
       placedStudents: Number(form.get("placedStudents")),
@@ -205,6 +213,14 @@ export function ComparisonDashboard({
               </select>
             </label>
             <label className="text-sm">Department (department scope)<Input name="department" placeholder="Computer Engineering" /></label>
+            <label className="text-sm">Company account (company scope)
+              <select name="companyUserId" className="mt-1 h-10 w-full rounded-md border border-black/20 px-3">
+                <option value="">Historical / unlinked company</option>
+                {companies.map((company) => (
+                  <option key={company.user_id} value={company.user_id}>{company.company_name}</option>
+                ))}
+              </select>
+            </label>
             <label className="text-sm">Company name (company scope)<Input name="companyName" placeholder="Company name" /></label>
             <label className="text-sm">Total students<Input name="totalStudents" type="number" min="0" required /></label>
             <label className="text-sm">Eligible students<Input name="eligibleStudents" type="number" min="0" required /></label>
