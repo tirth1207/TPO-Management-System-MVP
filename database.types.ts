@@ -309,7 +309,6 @@ export type Database = {
           },
         ]
       }
-    }
       placement_comparison_records: {
         Row: {
           academic_year: number
@@ -394,6 +393,7 @@ export type Database = {
           },
         ]
       }
+    }
     Views: {
       [_ in never]: never
     }
