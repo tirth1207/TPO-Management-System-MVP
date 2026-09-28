@@ -3,14 +3,15 @@ import { z } from "zod";
 import { assertRole, jsonError, requireAuthedContext } from "@/lib/api";
 
 const QuerySchema = z.object({
-  scope: z.enum(["college", "department", "company", "all"]).default("all"),
+  scope: z.enum(["college", "department", "mentor", "company", "all"]).default("all"),
   department: z.string().trim().min(1).optional(),
   companyUserId: z.string().uuid().optional(),
 });
 
 const CreateSchema = z.object({
   academicYear: z.number().int().min(2000).max(2200),
-  scopeType: z.enum(["college", "department", "company"]),
+  scopeType: z.enum(["college", "department", "mentor", "company"]),
+  facultyUserId: z.string().uuid().optional(),
   department: z.string().trim().min(1).optional(),
   companyName: z.string().trim().min(1).optional(),
   companyUserId: z.string().uuid().optional(),
@@ -37,13 +38,19 @@ const CreateSchema = z.object({
   if (value.scopeType === "department" && !value.department) {
     ctx.addIssue({ code: "custom", path: ["department"], message: "Department is required." });
   }
+  if (value.scopeType === "mentor" && !value.facultyUserId) {
+    ctx.addIssue({ code: "custom", path: ["facultyUserId"], message: "Mentor account is required." });
+  }
   if (value.scopeType === "company" && !value.companyName) {
     ctx.addIssue({ code: "custom", path: ["companyName"], message: "Company name is required." });
   }
   if (value.scopeType !== "department" && value.department) {
     ctx.addIssue({ code: "custom", path: ["department"], message: "Department is only valid for department scope." });
   }
-  if (value.scopeType === "college" && (value.companyName || value.companyUserId)) {
+  if (value.scopeType !== "mentor" && value.facultyUserId) {
+    ctx.addIssue({ code: "custom", path: ["facultyUserId"], message: "Mentor account is only valid for mentor scope." });
+  }
+  if (value.scopeType === "college" && (value.companyName || value.companyUserId || value.facultyUserId)) {
     ctx.addIssue({ code: "custom", path: ["scopeType"], message: "College records cannot have company details." });
   }
 });
@@ -99,6 +106,7 @@ export async function POST(req: Request) {
     const department = body.scopeType === "department" ? body.department ?? null : null;
     const companyName = body.scopeType === "company" ? body.companyName ?? null : null;
     const companyUserId = body.scopeType === "company" ? body.companyUserId ?? null : null;
+    const facultyUserId = body.scopeType === "mentor" ? body.facultyUserId ?? null : null;
 
     let existingQuery = ctx.supabase
       .from("placement_comparison_records")
@@ -108,10 +116,12 @@ export async function POST(req: Request) {
 
     if (body.scopeType === "department") {
       existingQuery = existingQuery.eq("department", department);
+    } else if (body.scopeType === "mentor") {
+      existingQuery = existingQuery.eq("faculty_user_id", facultyUserId);
     } else if (body.scopeType === "company") {
       existingQuery = companyUserId
         ? existingQuery.eq("company_user_id", companyUserId)
-        : existingQuery.is("company_user_id", null).eq("company_name", companyName);
+        : existingQuery.is("company_user_id", null).eq("company_name", companyName ?? "");
     }
 
     const { data: existing, error: lookupError } = await existingQuery.maybeSingle();
@@ -123,6 +133,7 @@ export async function POST(req: Request) {
       department,
       company_name: companyName,
       company_user_id: companyUserId,
+      faculty_user_id: facultyUserId,
       total_students: body.totalStudents,
       eligible_students: body.eligibleStudents,
       placed_students: body.placedStudents,
