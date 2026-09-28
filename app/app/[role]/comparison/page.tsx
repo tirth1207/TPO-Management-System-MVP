@@ -29,6 +29,14 @@ export default async function PlacementComparisonPage({
   }
 
   const { data, error } = await query;
+  const { data: companies } =
+    ctx.role === "admin" || ctx.role === "manager"
+      ? await supabase
+          .from("company_profiles")
+          .select("user_id, company_name")
+          .order("company_name", { ascending: true })
+      : { data: [] };
+
   if (error) {
     return (
       <div className="rounded-lg border border-black/10 bg-white p-4">
@@ -44,6 +52,7 @@ export default async function PlacementComparisonPage({
     <ComparisonDashboard
       role={ctx.role}
       initialRecords={(data ?? []) as ComparisonRecord[]}
+      companies={(companies ?? []) as { user_id: string; company_name: string }[]}
     />
   );
 }
