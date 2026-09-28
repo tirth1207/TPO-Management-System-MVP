@@ -96,34 +96,53 @@ export async function POST(req: Request) {
 
     const body = CreateSchema.parse(await req.json());
 
-    const { data, error } = await ctx.supabase
-      .from("placement_comparison_records")
-      .upsert({
-        academic_year: body.academicYear,
-        scope_type: body.scopeType,
-        department: body.scopeType === "department" ? body.department ?? null : null,
-        company_name: body.scopeType === "company" ? body.companyName ?? null : null,
-        company_user_id: body.scopeType === "company" ? body.companyUserId ?? null : null,
-        total_students: body.totalStudents,
-        eligible_students: body.eligibleStudents,
-        placed_students: body.placedStudents,
-        companies_hiring: body.companiesHiring,
-        offers: body.offers,
-        avg_ctc: body.avgCtc ?? null,
-        median_ctc: body.medianCtc ?? null,
-        highest_ctc: body.highestCtc ?? null,
-        lowest_ctc: body.lowestCtc ?? null,
-        notes: body.notes ?? null,
-        created_by: ctx.userId,
-      }, {
-        onConflict: "academic_year,scope_type,department,company_user_id,company_name",
-      })
-      .select("*")
-      .single();
+    const department = body.scopeType === "department" ? body.department ?? null : null;
+    const companyName = body.scopeType === "company" ? body.companyName ?? null : null;
+    const companyUserId = body.scopeType === "company" ? body.companyUserId ?? null : null;
 
+    let existingQuery = ctx.supabase
+      .from("placement_comparison_records")
+      .select("id")
+      .eq("academic_year", body.academicYear)
+      .eq("scope_type", body.scopeType);
+
+    if (body.scopeType === "department") {
+      existingQuery = existingQuery.eq("department", department);
+    } else if (body.scopeType === "company") {
+      existingQuery = companyUserId
+        ? existingQuery.eq("company_user_id", companyUserId)
+        : existingQuery.is("company_user_id", null).eq("company_name", companyName);
+    }
+
+    const { data: existing, error: lookupError } = await existingQuery.maybeSingle();
+    if (lookupError) return jsonError(400, "Failed to find existing comparison record", lookupError);
+
+    const payload = {
+      academic_year: body.academicYear,
+      scope_type: body.scopeType,
+      department,
+      company_name: companyName,
+      company_user_id: companyUserId,
+      total_students: body.totalStudents,
+      eligible_students: body.eligibleStudents,
+      placed_students: body.placedStudents,
+      companies_hiring: body.companiesHiring,
+      offers: body.offers,
+      avg_ctc: body.avgCtc ?? null,
+      median_ctc: body.medianCtc ?? null,
+      highest_ctc: body.highestCtc ?? null,
+      lowest_ctc: body.lowestCtc ?? null,
+      notes: body.notes ?? null,
+    };
+
+    const mutation = existing
+      ? ctx.supabase.from("placement_comparison_records").update(payload).eq("id", existing.id)
+      : ctx.supabase.from("placement_comparison_records").insert({ ...payload, created_by: ctx.userId });
+
+    const { data, error } = await mutation.select("*").single();
     if (error) return jsonError(400, "Failed to save placement comparison record", error);
 
-    return NextResponse.json({ item: data }, { status: 201 });
+    return NextResponse.json({ item: data }, { status: existing ? 200 : 201 });
   } catch (e) {
     if (e instanceof z.ZodError) return jsonError(400, "Invalid record", e.flatten());
     const msg = e instanceof Error ? e.message : "Unknown error";
