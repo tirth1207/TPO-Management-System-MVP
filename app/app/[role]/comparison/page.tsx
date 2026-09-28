@@ -37,6 +37,14 @@ export default async function PlacementComparisonPage({
           .order("company_name", { ascending: true })
       : { data: [] };
 
+  const { data: faculty } =
+    ctx.role === "admin" || ctx.role === "manager"
+      ? await supabase
+          .from("faculty_profiles")
+          .select("user_id, full_name, department")
+          .order("full_name", { ascending: true })
+      : { data: [] };
+
   if (error) {
     return (
       <div className="rounded-lg border border-black/10 bg-white p-4">
@@ -53,6 +61,7 @@ export default async function PlacementComparisonPage({
       role={ctx.role}
       initialRecords={(data ?? []) as ComparisonRecord[]}
       companies={(companies ?? []) as { user_id: string; company_name: string }[]}
+      faculty={(faculty ?? []) as { user_id: string; full_name: string; department: string }[]}
     />
   );
 }
