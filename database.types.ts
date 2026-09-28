@@ -320,6 +320,7 @@ export type Database = {
           created_at: string
           created_by: string
           department: string | null
+          faculty_user_id: string | null
           eligible_students: number
           highest_ctc: number | null
           id: string
@@ -341,6 +342,7 @@ export type Database = {
           created_at?: string
           created_by: string
           department?: string | null
+          faculty_user_id?: string | null
           eligible_students?: number
           highest_ctc?: number | null
           id?: string
@@ -361,6 +363,7 @@ export type Database = {
           company_user_id?: string | null
           created_at?: string
           created_by?: string
+          faculty_user_id?: string | null
           department?: string | null
           eligible_students?: number
           highest_ctc?: number | null
