@@ -34,7 +34,10 @@ create table if not exists public.placement_comparison_records (
     and offers >= placed_students
   ),
   constraint placement_comparison_ctc_check check (
-    avg_ctc is null or avg_ctc >= 0
+    (avg_ctc is null or avg_ctc >= 0)
+    and (median_ctc is null or median_ctc >= 0)
+    and (highest_ctc is null or highest_ctc >= 0)
+    and (lowest_ctc is null or lowest_ctc >= 0)
   )
 );
 
@@ -58,6 +61,9 @@ create index if not exists placement_comparison_faculty_idx
 on public.placement_comparison_records (faculty_user_id, academic_year desc);
 
 alter table public.placement_comparison_records enable row level security;
+
+revoke all on table public.placement_comparison_records from anon, authenticated;
+grant select, insert, update, delete on table public.placement_comparison_records to authenticated;
 
 drop policy if exists "placement comparison admin manager all" on public.placement_comparison_records;
 create policy "placement comparison admin manager all"
