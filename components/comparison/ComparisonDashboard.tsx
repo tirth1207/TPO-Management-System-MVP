@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 export type ComparisonRecord = {
   id: string;
   academic_year: number;
-  scope_type: "college" | "department" | "company";
+  scope_type: "college" | "department" | "mentor" | "company";
   department: string | null;
   company_name: string | null;
   company_user_id: string | null;
@@ -32,6 +32,12 @@ type CompanyOption = {
   company_name: string;
 };
 
+type FacultyOption = {
+  user_id: string;
+  full_name: string;
+  department: string;
+};
+
 function placementRate(record: ComparisonRecord) {
   return record.eligible_students
     ? (record.placed_students / record.eligible_students) * 100
@@ -46,14 +52,16 @@ export function ComparisonDashboard({
   role,
   initialRecords,
   companies,
+  faculty,
 }: {
   role: Role;
   initialRecords: ComparisonRecord[];
   companies: CompanyOption[];
+  faculty: FacultyOption[];
 }) {
   const [records, setRecords] = useState(initialRecords);
-  const [scope, setScope] = useState<"college" | "department" | "company">(
-    role === "company" ? "company" : "college"
+  const [scope, setScope] = useState<"college" | "department" | "mentor" | "company">(
+    role === "company" ? "company" : role === "faculty" ? "mentor" : "college"
   );
   const [department, setDepartment] = useState("");
   const [fromYear, setFromYear] = useState("");
@@ -91,6 +99,7 @@ export function ComparisonDashboard({
       department: form.get("department") ? String(form.get("department")) : undefined,
       companyName: form.get("companyName") ? String(form.get("companyName")) : undefined,
       companyUserId: form.get("companyUserId") ? String(form.get("companyUserId")) : undefined,
+      facultyUserId: form.get("facultyUserId") ? String(form.get("facultyUserId")) : undefined,
       totalStudents: Number(form.get("totalStudents")),
       eligibleStudents: Number(form.get("eligibleStudents")),
       placedStudents: Number(form.get("placedStudents")),
@@ -167,7 +176,8 @@ export function ComparisonDashboard({
               disabled={role === "company"}
             >
               {role !== "company" && <option value="college">College</option>}
-              {role !== "company" && <option value="department">Department / Mentor</option>}
+              {role !== "company" && <option value="department">Department</option>}
+              {role !== "company" && <option value="mentor">Mentor</option>}
               <option value="company">Company</option>
             </select>
           </label>
@@ -213,6 +223,14 @@ export function ComparisonDashboard({
               </select>
             </label>
             <label className="text-sm">Department (department scope)<Input name="department" placeholder="Computer Engineering" /></label>
+            <label className="text-sm">Mentor account (mentor scope)
+              <select name="facultyUserId" className="mt-1 h-10 w-full rounded-md border border-black/20 px-3">
+                <option value="">Select mentor</option>
+                {faculty.map((item) => (
+                  <option key={item.user_id} value={item.user_id}>{item.full_name} · {item.department}</option>
+                ))}
+              </select>
+            </label>
             <label className="text-sm">Company account (company scope)
               <select name="companyUserId" className="mt-1 h-10 w-full rounded-md border border-black/20 px-3">
                 <option value="">Historical / unlinked company</option>
