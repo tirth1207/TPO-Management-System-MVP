@@ -310,6 +310,87 @@ export type Database = {
         ]
       }
     }
+      placement_comparison_records: {
+        Row: {
+          academic_year: number
+          avg_ctc: number | null
+          companies_hiring: number
+          company_name: string | null
+          company_user_id: string | null
+          created_at: string
+          created_by: string
+          department: string | null
+          eligible_students: number
+          highest_ctc: number | null
+          id: string
+          lowest_ctc: number | null
+          median_ctc: number | null
+          notes: string | null
+          offers: number
+          placed_students: number
+          scope_type: string
+          total_students: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year: number
+          avg_ctc?: number | null
+          companies_hiring?: number
+          company_name?: string | null
+          company_user_id?: string | null
+          created_at?: string
+          created_by: string
+          department?: string | null
+          eligible_students?: number
+          highest_ctc?: number | null
+          id?: string
+          lowest_ctc?: number | null
+          median_ctc?: number | null
+          notes?: string | null
+          offers?: number
+          placed_students?: number
+          scope_type: string
+          total_students?: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: number
+          avg_ctc?: number | null
+          companies_hiring?: number
+          company_name?: string | null
+          company_user_id?: string | null
+          created_at?: string
+          created_by?: string
+          department?: string | null
+          eligible_students?: number
+          highest_ctc?: number | null
+          id?: string
+          lowest_ctc?: number | null
+          median_ctc?: number | null
+          notes?: string | null
+          offers?: number
+          placed_students?: number
+          scope_type?: string
+          total_students?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "placement_comparison_records_company_user_id_fkey"
+            columns: ["company_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "placement_comparison_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     Views: {
       [_ in never]: never
     }
