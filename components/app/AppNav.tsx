@@ -30,6 +30,7 @@ export function AppNav({ role, email }: AppNavProps) {
     { href: `${base}/jobs`, label: "Jobs", show: role === "company" },
     { href: `${base}/applications`, label: "Applications", show: role === "student" },
     { href: `${base}/history`, label: "History", show: role === "manager" || role === "admin" },
+    { href: `${base}/comparison`, label: "Placement Comparison", show: role === "manager" || role === "admin" || role === "faculty" || role === "company" },
   ].filter((l) => l.show);
 
   return (
