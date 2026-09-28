@@ -30,14 +30,14 @@ from (
   (2026, 'department', 'Mechanical Engineering', null, null, null, 87, 74, 62, 16, 70, 4.22, 3.90, 8.60, 2.40, 'Synthetic demo department snapshot.'),
 
   -- Companies
-  (2025, 'company', null, 'TechNova Solutions', null, null, 0, 12, 7, 1, 7, 5.20, 5.00, 6.50, 4.00, 'Synthetic demo company history.'),
-  (2026, 'company', null, 'TechNova Solutions', null, null, 0, 16, 10, 1, 10, 5.65, 5.50, 7.20, 4.20, 'Synthetic demo company history.'),
-  (2025, 'company', null, 'Apex Infotech', null, null, 0, 18, 8, 1, 8, 4.60, 4.50, 6.00, 3.50, 'Synthetic demo company history.'),
-  (2026, 'company', null, 'Apex Infotech', null, null, 0, 22, 13, 1, 14, 5.05, 4.80, 6.80, 3.80, 'Synthetic demo company history.'),
-  (2025, 'company', null, 'CloudMatrix Systems', null, null, 0, 14, 6, 1, 6, 5.80, 5.50, 8.00, 4.50, 'Synthetic demo company history.'),
-  (2026, 'company', null, 'CloudMatrix Systems', null, null, 0, 20, 11, 1, 12, 6.35, 6.00, 9.20, 4.80, 'Synthetic demo company history.'),
-  (2025, 'company', null, 'ByteCraft Technologies', null, null, 0, 20, 9, 1, 10, 4.35, 4.10, 5.80, 3.20, 'Synthetic demo company history.'),
-  (2026, 'company', null, 'ByteCraft Technologies', null, null, 0, 25, 15, 1, 16, 4.85, 4.60, 6.40, 3.50, 'Synthetic demo company history.')
+  (2025, 'company', null, 'TechNova Solutions', null, null, 12, 12, 7, 1, 7, 5.20, 5.00, 6.50, 4.00, 'Synthetic demo company history.'),
+  (2026, 'company', null, 'TechNova Solutions', null, null, 16, 16, 10, 1, 10, 5.65, 5.50, 7.20, 4.20, 'Synthetic demo company history.'),
+  (2025, 'company', null, 'Apex Infotech', null, null, 18, 18, 8, 1, 8, 4.60, 4.50, 6.00, 3.50, 'Synthetic demo company history.'),
+  (2026, 'company', null, 'Apex Infotech', null, null, 22, 22, 13, 1, 14, 5.05, 4.80, 6.80, 3.80, 'Synthetic demo company history.'),
+  (2025, 'company', null, 'CloudMatrix Systems', null, null, 14, 14, 6, 1, 6, 5.80, 5.50, 8.00, 4.50, 'Synthetic demo company history.'),
+  (2026, 'company', null, 'CloudMatrix Systems', null, null, 20, 20, 11, 1, 12, 6.35, 6.00, 9.20, 4.80, 'Synthetic demo company history.'),
+  (2025, 'company', null, 'ByteCraft Technologies', null, null, 20, 20, 9, 1, 10, 4.35, 4.10, 5.80, 3.20, 'Synthetic demo company history.'),
+  (2026, 'company', null, 'ByteCraft Technologies', null, null, 25, 25, 15, 1, 16, 4.85, 4.60, 6.40, 3.50, 'Synthetic demo company history.')
 ) as v(
   academic_year, scope_type, department, company_name, company_user_id, faculty_user_id,
   total_students, eligible_students, placed_students, companies_hiring, offers,
