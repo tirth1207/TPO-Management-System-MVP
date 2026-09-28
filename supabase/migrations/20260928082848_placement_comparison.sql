@@ -1,10 +1,11 @@
 create table if not exists public.placement_comparison_records (
   id uuid primary key default gen_random_uuid(),
   academic_year integer not null check (academic_year >= 2000 and academic_year <= 2200),
-  scope_type text not null check (scope_type in ('college', 'department', 'company')),
+  scope_type text not null check (scope_type in ('college', 'department', 'mentor', 'company')),
   department text,
   company_name text,
   company_user_id uuid references public.profiles(user_id) on delete set null,
+  faculty_user_id uuid references public.profiles(user_id) on delete set null,
   total_students integer not null default 0 check (total_students >= 0),
   eligible_students integer not null default 0 check (eligible_students >= 0),
   placed_students integer not null default 0 check (placed_students >= 0),
@@ -19,11 +20,13 @@ create table if not exists public.placement_comparison_records (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint placement_comparison_scope_check check (
-    (scope_type = 'college' and department is null and company_name is null and company_user_id is null)
+    (scope_type = 'college' and department is null and company_name is null and company_user_id is null and faculty_user_id is null)
     or
-    (scope_type = 'department' and department is not null and company_name is null and company_user_id is null)
+    (scope_type = 'department' and department is not null and company_name is null and company_user_id is null and faculty_user_id is null)
     or
-    (scope_type = 'company' and company_name is not null)
+    (scope_type = 'mentor' and faculty_user_id is not null and company_name is null and company_user_id is null)
+    or
+    (scope_type = 'company' and company_name is not null and faculty_user_id is null)
   ),
   constraint placement_comparison_counts_check check (
     eligible_students <= total_students
@@ -41,6 +44,7 @@ on public.placement_comparison_records (
   scope_type,
   coalesce(department, ''),
   coalesce(company_user_id::text, ''),
+  coalesce(faculty_user_id::text, ''),
   coalesce(lower(company_name), '')
 );
 
@@ -49,6 +53,9 @@ on public.placement_comparison_records (academic_year desc);
 
 create index if not exists placement_comparison_company_idx
 on public.placement_comparison_records (company_user_id, academic_year desc);
+
+create index if not exists placement_comparison_faculty_idx
+on public.placement_comparison_records (faculty_user_id, academic_year desc);
 
 alter table public.placement_comparison_records enable row level security;
 
@@ -68,6 +75,10 @@ to authenticated
 using (
   (select public.tpo_my_role()) = 'faculty'
   and (select public.tpo_is_approved(auth.uid()))
+  and (
+    scope_type in ('college', 'department')
+    or (scope_type = 'mentor' and faculty_user_id = (select auth.uid()))
+  )
 );
 
 drop policy if exists "placement comparison company own read" on public.placement_comparison_records;
